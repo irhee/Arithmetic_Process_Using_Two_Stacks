@@ -1,7 +1,3 @@
-// ConsoleApplication1.cpp : Defines the entry point for the console application.
-//
-#include "stdafx.h"
-
 /******************************************************************************
 Insoo Rhee 301075548 ira3@sfu.ca
 Assignment 3.
@@ -22,36 +18,64 @@ enum operators
 	mult_div,
 };
 
-void check_expression(string &e, stack<double> &valStk, stack<string> &opStk);
-void doOp(stack<double> &valStk, stack<string> &opStk);
-void repeatOps(string &refOp, stack<double> &valStk, stack<string> &opStk);
+void check_expression(string &e);
+void doOp(stack<double> &valStk, stack<string> &opStk, double &ineq_double, string &ineq_string);
+void repeatOps(string &refOp, stack<double> &valStk, stack<string> &opStk, double &ineq_double, string& ineq_string);
 int main()
 {
-	stack<double> val[30];
-	stack<string> op[30];
-	string expression = "1 + 2 - 3 * 4 / 5";
+	string expression;
+	expression = "1 + 2 - 3 * 4 / 5";
 	cout << "\"" << expression << "\"" << endl;
-	check_expression(expression, val[0], op[0]);
-
+	check_expression(expression);
+		
 	expression = "12 - 3 * 2 + 7";
 	cout << "\"" << expression << "\"" << endl;
-	check_expression(expression, val[1], op[1]);
+	check_expression(expression);
 
-	expression = "14 / 4 - 3 * 2 + 7";
+	expression = "14 <= 4 - 3 * 2 + 7";
 	cout << "\"" << expression << "\"" << endl;
-	check_expression(expression, val[2], op[2]);
+	check_expression(expression);
 
+	expression = "14 <= 4 - 3 * 2 + 7 <= 16";
+	cout << "\"" << expression << "\"" << endl;
+	check_expression(expression);
+
+	expression = "1 * 4 / 100 + 3 * 2 + 7";
+	cout << "\"" << expression << "\"" << endl;
+	check_expression(expression);
+
+	expression = "19 >= 0 + 10 - 4 / 4 <= 8 * 7";
+	cout << "\"" << expression << "\"" << endl;
+	check_expression(expression);
+	while (1)
+	{
+		cout << "Enter your expression: ";
+		getline(cin, expression);
+		check_expression(expression);
+	} 
 	return 0;
 }
-void check_expression(string &e, stack<double> &valStk, stack<string> &opStk)
+void check_expression(string &e)
 {
-	string parse;
+	//***************************
+	//inside while loop for parsing the arithematic equation	
 	const int MAX = e.length();
 	int inc = 0;
+	string parse;
 	string del = " ";
 	int add;
+	stack<double> valStk;
+	stack<string> opStk;
+	//***************************
+	//checking the inequality sign
+	bool inq_true_false = false;
+	bool bad_expression_counter = false;
+	bool go_to = true;
+	double inq_double;
+	string inq_string;
 	bool Positive = true;
 	int newNegativeNumber;
+	//***************************
 
 	while (inc < MAX)
 	{
@@ -65,15 +89,15 @@ void check_expression(string &e, stack<double> &valStk, stack<string> &opStk)
 		{
 			if (!opStk.empty())
 			{
-				repeatOps(parse, valStk, opStk);
+				repeatOps(parse, valStk, opStk, inq_double, inq_string);
 			}
 			opStk.push(parse);
 		}
-		else if (parse.compare("+") == 0) // +
+		else if (parse.compare("+") == 0)
 		{
 			if (!opStk.empty())
 			{
-				repeatOps(parse, valStk, opStk);
+				repeatOps(parse, valStk, opStk, inq_double, inq_string);
 			}
 			opStk.push(parse);
 		}
@@ -82,19 +106,27 @@ void check_expression(string &e, stack<double> &valStk, stack<string> &opStk)
 			parse = "+";
 			if (!opStk.empty())
 			{
-				repeatOps(parse, valStk, opStk);
+				repeatOps(parse, valStk, opStk, inq_double, inq_string);
 			}
 			opStk.push(parse);
 
-			cout << "1"<< opStk.top() << endl;
 			Positive = false;
 		}
-		else if (parse.compare(">=") == 0 || parse.compare("<=") == 0) // -
+		else if (parse.compare(">=") == 0 || parse.compare("<=") == 0)
 		{
+			if (bad_expression_counter)
+			{
+				cout << "BadExpression exception" << endl;
+				go_to = false;
+				break;
+			}
+
 			if (!opStk.empty())
 			{
-				repeatOps(parse, valStk, opStk);
+				repeatOps(parse, valStk, opStk, inq_double, inq_string);
 			}
+			inq_true_false = true;
+			bad_expression_counter = true;
 			opStk.push(parse);
 		}
 		else if (Positive == true) // Summation
@@ -102,58 +134,96 @@ void check_expression(string &e, stack<double> &valStk, stack<string> &opStk)
 			valStk.push(stoi(parse));
 			Positive = true;
 		}
-		else if (Positive == false)// Subtract
+		else if (Positive == false)// Subtraction
 		{
 			valStk.push(stoi(parse)*(-1));
 			Positive = true;
 		}
-
 		e = e.substr(e.find(del) + 1, e.length());
 		inc += add;
 	}
-	valStk.push(stoi(e));
-	parse = "$";
-	repeatOps(parse, valStk, opStk);
+	if (go_to)
+	{
+		valStk.push(stoi(e));
+		parse = "$";
+		repeatOps(parse, valStk, opStk, inq_double, inq_string);
 
-	cout << valStk.top() << endl;
+		if (inq_true_false)
+		{
+			bad_expression_counter++;
+			if (inq_string.compare(">=") == 0)
+			{
+				if (valStk.top() >= inq_double)
+				{
+					cout << "true." << endl;
+				}
+				else
+				{
+					cout << "false." << endl;
+				}
+			}
+			else
+			{
+				if (valStk.top() <= inq_double)
+				{
+					cout << "true." << endl;
+				}
+				else
+				{
+					cout << "false." << endl;
+				}
+			}
+		}
+		else
+		{
+			cout << valStk.top() << endl;
+		}
+	}
 }
-void doOp(stack<double> &valStk, stack<string> &opStk)
+void doOp(stack<double> &valStk, stack<string> &opStk, double &ineq_double, string &ineq_string)
 {
-	double y = valStk.top();
-	valStk.pop();
-	double x = valStk.top();
-	valStk.pop();
 	string op = opStk.top();
 	opStk.pop();
 	double ans;
-	if (op.compare("*") == 0)
+	double x;
+	double y;
+	if (op.compare(">=") == 0)
 	{
-		ans = x * y;
-		valStk.push(ans);
-		cout << "*" << ans << endl;
-	}
-	else if (op.compare("/") == 0)
-	{
-		ans = x / y;
-		valStk.push(ans);
-		cout << "/" << ans << endl;
-	}
-	else if (op.compare("+") == 0)
-	{
-		ans = x + y;
-		valStk.push(ans);
-		cout << "+" << ans << endl;
-	}
-	else if (op.compare(">=") == 0)
-	{
-		valStk.push(ans);
+		ineq_string = ">=";
+		ineq_double = valStk.top();
+		valStk.pop();
 	}
 	else if (op.compare("<=") == 0)
 	{
+		ineq_string = "<=";
+		ineq_double = valStk.top();
+		valStk.pop();
+	}
+	else
+	{
+		x = valStk.top();
+		valStk.pop();
+		y = valStk.top();
+		valStk.pop();
+	}
+
+	if (op.compare("*") == 0)
+	{
+		ans = y * x;
+		valStk.push(ans);
+	}
+	else if (op.compare("/") == 0)
+	{
+		ans = y / x;
+		valStk.push(ans);
+	}
+	else if (op.compare("+") == 0)
+	{
+		ans = y + x;
 		valStk.push(ans);
 	}
 }
-void repeatOps(string &refOp, stack<double> &valStk, stack<string> &opStk)
+void repeatOps(string &refOp, stack<double> &valStk, stack<string> &opStk, double &ineq_double, string& ineq_string)
 {
 	int refInt;
 	if (refOp.compare("*") == 0)
@@ -182,6 +252,10 @@ void repeatOps(string &refOp, stack<double> &valStk, stack<string> &opStk)
 	}
 
 	int opInt;
+	if (opStk.empty())
+	{
+
+	}
 	string opStkTop = opStk.top();
 	if (opStkTop.compare("*") == 0)
 	{
@@ -210,7 +284,7 @@ void repeatOps(string &refOp, stack<double> &valStk, stack<string> &opStk)
 
 	while (valStk.size() > 1 && refInt <= opInt)
 	{
-		doOp(valStk, opStk);
+		doOp(valStk, opStk, ineq_double, ineq_string);
 		if (opStk.empty())
 		{
 			break;
