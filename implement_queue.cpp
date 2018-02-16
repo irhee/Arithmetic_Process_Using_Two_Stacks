@@ -9,17 +9,17 @@ template <class A_Type> class implement_queue
 public:
 	implement_queue() { }
 	~implement_queue() { }
-	A_Type top() {
+	A_Type front() {
 		if (deStack.empty())
 		{
 			int S = enStack.size();
 			for (int i = 0; i < S; i++)
 			{
-				deStack.push(enStack.top());
+				deStack.push(enStack.front());
 				enStack.pop();
 			}
 		}
-		return deStack.top();
+		return deStack.front();
 	}
 	void enQueue(A_Type newString) {
 		enStack.push(newString);
@@ -30,7 +30,7 @@ public:
 			int S = enStack.size();
 			for (int i = 0; i < S; i++)
 			{
-				deStack.push(enStack.top());
+				deStack.push(enStack.front());
 				enStack.pop();
 			}
 		}
@@ -56,7 +56,7 @@ int main()
 {
 	implement_queue <string> newQueue;
 	newQueue.enQueue("hello");
-	cout << "newQueue has \"" << newQueue.top() << "\"" << endl;
+	cout << "newQueue has \"" << newQueue.front() << "\"" << endl;
 	newQueue.enQueue("this works!");
 	newQueue.enQueue("10");
 	newQueue.enQueue("20");
@@ -65,7 +65,7 @@ int main()
 	int S = newQueue.size();
 	for (int i = 0; i < S; i++)
 	{
-		cout << newQueue.top() << endl;
+		cout << newQueue.front() << endl;
 		newQueue.deQueue();
 	}
 	if (newQueue.empty())
