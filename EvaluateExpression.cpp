@@ -27,7 +27,7 @@ int main()
 	expression = "1 + 2 - 3 * 4 / 5";
 	cout << "\"" << expression << "\"" << endl;
 	check_expression(expression);
-		
+
 	expression = "12 - 3 * 2 + 7";
 	cout << "\"" << expression << "\"" << endl;
 	check_expression(expression);
@@ -52,7 +52,8 @@ int main()
 		cout << "Enter your expression: ";
 		getline(cin, expression);
 		check_expression(expression);
-	} 
+	}
+
 	return 0;
 }
 void check_expression(string &e)
@@ -103,17 +104,18 @@ void check_expression(string &e)
 		}
 		else if (parse.compare("-") == 0)
 		{
+			Positive = false;
 			parse = "+";
+
 			if (!opStk.empty())
 			{
 				repeatOps(parse, valStk, opStk, inq_double, inq_string);
 			}
 			opStk.push(parse);
-
-			Positive = false;
 		}
 		else if (parse.compare(">=") == 0 || parse.compare("<=") == 0)
 		{
+
 			if (bad_expression_counter)
 			{
 				cout << "BadExpression exception" << endl;
@@ -129,22 +131,37 @@ void check_expression(string &e)
 			bad_expression_counter = true;
 			opStk.push(parse);
 		}
-		else if (Positive == true) // Summation
+		else // Summation Subtraction
 		{
-			valStk.push(stoi(parse));
-			Positive = true;
-		}
-		else if (Positive == false)// Subtraction
-		{
-			valStk.push(stoi(parse)*(-1));
-			Positive = true;
+			if (Positive == true)
+			{
+				valStk.push(stod(parse));
+				Positive = true;
+			}
+			else
+			{
+				double a = stod(parse);
+				valStk.push(a * (-1.0));
+				Positive = true;
+			}
 		}
 		e = e.substr(e.find(del) + 1, e.length());
 		inc += add;
 	}
 	if (go_to)
 	{
-		valStk.push(stoi(e));
+		if (Positive == true)
+		{
+			valStk.push(stod(e));
+			Positive = true;
+		}
+		else
+		{
+			double a = stod(e);
+			valStk.push(a * (-1.0));
+			Positive = true;
+		}
+
 		parse = "$";
 		repeatOps(parse, valStk, opStk, inq_double, inq_string);
 
